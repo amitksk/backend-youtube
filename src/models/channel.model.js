@@ -18,10 +18,20 @@ const channelSchema = new mongoose.Schema(
             type: String
         },
         logo: {
-            type: String
+            type: String,
+            required: true,
         },
         banner: {
             type: String
+        },
+        owner: {
+             type: Schema.Types.ObjectId,
+             ref: 'User'
+        },
+        ownerName: {
+            type: String,
+            required: true,
+            ref: 'User'
         },
         subscriberTo: {
             type: Number,
@@ -39,7 +49,7 @@ const channelSchema = new mongoose.Schema(
                 ref: 'Video'
             }
         ]
-    }, {}
+    }, {timestamps: true}
 )
 
 export const Channel = mongoose.model("Channel", channelSchema)

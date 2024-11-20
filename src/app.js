@@ -24,6 +24,7 @@ import commentRouter from "./routes/comment.route.js"
 import tweetRouter from "./routes/tweet.route.js"
 import likeRouter from "./routes/like.route.js"
 import channelRouter from "./routes/channel.route.js"
+import subscriptionRouter from "./routes/subscription.route.js"
 
 
 // http://localhost:8000/api/v1/users/register
@@ -35,6 +36,6 @@ app.use("/api/v1/comments", commentRouter)
 app.use("/api/v1/tweets", tweetRouter)
 app.use("/api/v1/likes", likeRouter)
 app.use("/api/v1/channels", channelRouter)
-
+app.use("/api/v1/subscriptions", subscriptionRouter)
 
 export default app;
