@@ -63,8 +63,7 @@ const getChannelSubscriber = asyncHandler(async (req, res) => {
 
 });
 
-
-//---------------------Get Channel Subscribers List-----------
+//---------------------Get Channel Subscribers-List-----------
 const getChannelSubscribersList = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
 
@@ -101,10 +100,42 @@ const getChannelSubscribersList = asyncHandler(async (req, res) => {
   }
 });
 
-
-//controller to return channel list to which user has subscribed
-const getSubscribedChannels = asyncHandler(async (req, res) => {
+//---------------------Get Subscribed Channels-List----------------
+const getSubscribedChannelsList = asyncHandler(async (req, res) => {
   const { subscriberId } = req.params;
+
+  // Validate subscriberId
+  if (!isValidObjectId(subscriberId)) {
+    return res.status(400).json(new ApiResponse(400, null, "Invalid or missing subscriber id"));
+  }
+
+  try {
+    // Find all subscriptions for the given subscriberId
+    const subscriptions = await Subscription.find({ subscriberId })
+      .populate("channelId", "name description") // Populate channel details
+      .exec();
+
+    // Check if the user has subscribed to any channels
+    if (!subscriptions.length) {
+      return res
+        .status(404)
+        .json(new ApiResponse(404, [], "No subscribed channels found for this user"));
+    }
+
+    // Format the response data
+    const subscribedChannels = subscriptions.map((sub) => ({
+      id: sub.channelId?._id, // Use populated `channelId`
+      name: sub.channelId?.name,
+      description: sub.channelId?.description,
+    }));
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, subscribedChannels, "Subscribed channels fetched successfully!"));
+  } catch (error) {
+    console.error("Error fetching subscribed channels:", error);
+    return res.status(500).json(new ApiResponse(500, null, "Internal server error"));
+  }
 });
 
 
@@ -112,5 +143,5 @@ export {
   toggleSubscription,
   getChannelSubscriber,
   getChannelSubscribersList,
-  getSubscribedChannels 
+  getSubscribedChannelsList
 }
