@@ -56,46 +56,55 @@ const createChannel = asyncHandler(async (req, res) => {
 
 //----------------------get channel stats-----------------
 const getChannelStats = asyncHandler(async (req, res) => {
-  // TODO: Get the channel stats like total video views, total subscribers, total videos, total likes etc.
   const { channelId } = req.params;
-  // const { page = 1, limit = 10 } = req.query;
-  const userId = req.user._id;
 
-  if (!channelId || !isValidObjectId(channelId)) {
-    throw new ApiError(400, "Invalid or missing channel id");
-  }
-  if (!userId) {
-    throw new ApiError(400, "Invalid or missing user id");
+  // Validate channelId
+  if (!isValidObjectId(channelId)) {
+    return res.status(400).json(new ApiResponse(400, null, "Invalid or missing channel id"));
   }
 
-  const channel = await Channel.findById(channelId);
-  if (!channel) {
-    throw new ApiError(404, "Channel not found");
-  }
-  const videos = await Video.find({ channel: channelId });
-  const totalVideos = videos.length;
-  const totalSubscribers = await Subscription.countDocuments({
-    channel: channelId,
-  });
-  const totalLikes = await Like.countDocuments({
-    video: { $in: videos.map((v) => v._id) },
-  });
-  const totalViews = videos.reduce((sum, video) => sum + video.views, 0);
+  try {
+    // Debugging: Check if the channelId is valid in the database
+    const channel = await Channel.findById(channelId);
+    if (!channel) {
+      return res.status(404).json(new ApiResponse(404, null, "Channel not found"));
+    }
 
-  return res
-  .status(200)
-  .json(
-    new ApiResponse(
-      200,
-      {
-        totalVideos,
-        totalSubscribers,
-        totalLikes,
-        totalViews,
-      },
-      "Channel stats fetched successfully"
-    )
-  );
+    // 1. Total Video Views
+    const videoViews = await Video.aggregate([
+      { $match: { channelId: new mongoose.Types.ObjectId(channelId) } },
+      { $group: { _id: null, totalViews: { $sum: "$views" } } },
+    ]);
+    console.log("videoViews:", videoViews); // Debugging log
+
+    // 2. Total Subscribers
+    const totalSubscribers = await Subscription.countDocuments({ channelId: new mongoose.Types.ObjectId(channelId) });
+
+    // 3. Total Videos
+    const totalVideos = await Video.countDocuments({ channelId: new mongoose.Types.ObjectId(channelId) });
+
+    // 4. Total Likes (if your Video schema includes a likes field)
+    const videoLikes = await Video.aggregate([
+      { $match: { channelId: new mongoose.Types.ObjectId(channelId) } },
+      { $group: { _id: null, totalLikes: { $sum: "$likes" } } },
+    ]);
+    console.log("videoLikes:", videoLikes); // Debugging log
+
+    // Prepare the stats response
+    const stats = {
+      totalViews: videoViews[0]?.totalViews || 0, // If no videos, set to 0
+      totalSubscribers,
+      totalVideos,
+      totalLikes: videoLikes[0]?.totalLikes || 0, // If no videos, set to 0
+    };
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, stats, "Channel stats fetched successfully!"));
+  } catch (error) {
+    console.error("Error fetching channel stats:", error); // Log the error
+    return res.status(500).json(new ApiResponse(500, null, "Internal server error"));
+  }
 });
 
 //----------------------get channel videos----------------
@@ -147,7 +156,6 @@ const deleteChannel = asyncHandler(async (req, res) => {
   .json(new ApiResponse(200, null, "Channel deleted successfully"));
 
 });
-
 
 
 export {
