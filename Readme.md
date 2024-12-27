@@ -5,17 +5,17 @@ Developing this project required a lot of time and effort, and it helped me lear
 
 ****************Development Process*****************
 
-npm init
-npm i express
-npm i dotenv
-npm i -D nodemon
-npm i mongoose
-npm i cookie-parser
-npm i cors
-npm i bcrypt
-npm i jsonwebtoken
-npm i cloudinary
-npm i multer
-npm i mongoose-aggregate-paginate-v2
+npm init, 
+npm i express, 
+npm i dotenv, 
+npm i -D nodemon, 
+npm i mongoose, 
+npm i cookie-parser, 
+npm i cors, 
+npm i bcrypt, 
+npm i jsonwebtoken, 
+npm i cloudinary, 
+npm i multer, 
+npm i mongoose-aggregate-paginate-v2, 
 
 *****************************************************
